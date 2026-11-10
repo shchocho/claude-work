@@ -1,0 +1,317 @@
+<title>미니어처 가구 공방</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* layout: 왼쪽 가구 목록, 오른쪽 작업대 (커팅매트 위 3D → 3면도 → 재단 → 조립) */
+:root{--bg:#eef2ee;--panel:#fff;--ink:#1c2a24;--muted:#5c6b64;--line:#cfd8d2;--accent:#0f6b4f;--on-accent:#fff;--mat:#2f6f58;--mat-line:#ffffff2e;--warn:#a8480f;
+--sans:"IBM Plex Sans KR",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12201b;--panel:#1a2b25;--ink:#e4ece7;--muted:#93a69c;--line:#2c4138;--accent:#5cc9a0;--on-accent:#0c1a15;--mat:#1d4a3a;--mat-line:#ffffff1f;--warn:#f0a36b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12201b;--panel:#1a2b25;--ink:#e4ece7;--muted:#93a69c;--line:#2c4138;--accent:#5cc9a0;--on-accent:#0c1a15;--mat:#1d4a3a;--mat-line:#ffffff1f;--warn:#f0a36b;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.app{display:grid;grid-template-columns:270px minmax(0,1fr);gap:28px;max-width:1240px;margin:0 auto}
+aside{display:flex;flex-direction:column;gap:10px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);align-self:start;max-height:calc(100vh - 40px)}
+h1{font-size:22px;line-height:1.2;margin:0;letter-spacing:-.01em}
+h2{font-size:28px;line-height:1.2;margin:0;text-wrap:balance}
+h3{font-size:13px;margin:0 0 10px;color:var(--muted);letter-spacing:.08em;font-weight:500}
+p{margin:0}.sub,.hint,footer{color:var(--muted);font-size:13px}
+.mono,td,th{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px}
+input,select,button{font:inherit;color:inherit}
+input,select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#cats{display:flex;flex-wrap:wrap;gap:6px}
+#cats button{background:none;border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:12px;cursor:pointer}
+#cats button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#list{overflow-y:auto;display:flex;flex-direction:column;border-top:1px solid var(--line);min-height:120px}
+#list button{display:flex;justify-content:space-between;gap:8px;align-items:baseline;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:7px 6px;cursor:pointer}
+#list button:hover{background:var(--panel)}
+#list button[aria-current]{background:var(--accent);color:var(--on-accent)}
+#list small{font-size:11px;white-space:nowrap}
+main{display:flex;flex-direction:column;gap:28px;min-width:0}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-top:12px}
+#dl{background:var(--accent);color:var(--on-accent);border:0;border-radius:6px;padding:8px 14px;font-weight:500;cursor:pointer}
+#v3{height:min(56vh,460px);border-radius:8px;overflow:hidden;color:#fff;display:grid;place-items:center;text-align:center;
+background:linear-gradient(var(--mat-line) 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,var(--mat-line) 1px,transparent 1px) 0 0/24px 24px,var(--mat)}
+#v3 canvas{display:block;touch-action:none}
+.paper{border:1px solid var(--line);overflow:hidden;line-height:0}
+.paper svg{width:100%;height:auto}
+#sheets{display:flex;flex-wrap:wrap;gap:14px}#sheets .paper{flex:1 1 300px;max-width:520px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:6px 14px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--muted);font-weight:500}
+.warn{color:var(--warn);font-size:13px}
+ol{margin:8px 0 0;padding-left:22px;max-width:65ch}li{margin-bottom:4px}
+#how p{max-width:65ch}
+@media (max-width:760px){.app{grid-template-columns:1fr;gap:20px}aside{position:static;max-height:none}#list{max-height:34vh}h2{font-size:23px}}
+</style>
+
+<div class="app">
+<aside>
+  <h1>미니어처 가구 공방</h1>
+  <p class="sub">인기 조립 가구 100종을 축소 모형으로. 도면, 재단, 3D까지 한 번에.</p>
+  <input id="q" type="search" placeholder="이름 검색 (예: 책장, MALM)" aria-label="가구 검색">
+  <div id="cats" role="group" aria-label="분류"></div>
+  <div id="list"></div>
+</aside>
+<main>
+  <header>
+    <h2 id="nm"></h2>
+    <p id="dims" class="mono"></p>
+    <div class="ctl">
+      <label>축척 <select id="sc"><option value="6">1:6 (인형)</option><option value="12" selected>1:12 (돌하우스)</option><option value="24">1:24</option><option value="48">1:48</option></select></label>
+      <label>판재 두께 <select id="st"><option value="1">1 mm</option><option value="1.5" selected>1.5 mm</option><option value="2">2 mm</option><option value="3">3 mm</option></select></label>
+      <button id="dl" hidden>제작 키트 내려받기 (.zip)</button>
+      <span id="msg" class="hint" role="status"></span>
+    </div>
+  </header>
+  <section><h3>3D 모형</h3><div id="v3"></div><p class="hint">드래그로 회전, 휠이나 두 손가락으로 확대합니다.</p></section>
+  <section><h3>3면도 (모형 치수, mm)</h3><div class="paper" id="bp"></div></section>
+  <section><h3>재단표</h3><div class="scroll"><table id="cut"></table></div></section>
+  <section><h3>재단 배치도 (A4 실척)</h3><div id="sheets"></div><p class="hint">제작 키트의 SVG를 배율 100%로 인쇄하면 실제 크기 본이 됩니다. 레이저 커터에도 그대로 넣을 수 있습니다.</p></section>
+  <section><h3>재료와 조립 순서</h3><div id="how"></div></section>
+  <footer>비공식 취미용 도구이며 IKEA와 관계가 없습니다. 100종은 임의로 고른 대표 제품이고, 치수는 근삿값이며 형상은 직육면체 부품으로 단순화했습니다. 정확한 치수는 제품 페이지에서 확인하세요.</footer>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+//LOGIC-START
+// [이름, 유형, 폭, 깊이(침대는 길이), 높이(침대는 프레임 높이), 옵션] 실물 cm, 근삿값
+const T=[
+['BILLY 책장','case',80,28,202,{r:6}],
+['BILLY 책장 (폭 40)','case',40,28,202,{r:6}],
+['BILLY 책장 (낮은)','case',80,28,106,{r:3}],
+['KALLAX 선반 2×2','case',77,39,77,{c:2,r:2}],
+['KALLAX 선반 2×4','case',77,39,147,{c:2,r:4}],
+['KALLAX 선반 4×4','case',147,39,147,{c:4,r:4}],
+['EKET 수납장 2×2','case',70,35,70,{c:2,r:2}],
+['MALM 3칸 서랍장','case',80,48,78,{dr:[1,3]}],
+['MALM 4칸 서랍장','case',80,48,100,{dr:[1,4]}],
+['MALM 6칸 서랍장','case',160,48,78,{dr:[2,3]}],
+['MALM 2칸 협탁','case',40,48,55,{dr:[1,2]}],
+['HEMNES 8칸 서랍장','case',160,50,96,{dr:[2,4],legs:8}],
+['HEMNES 3칸 서랍장','case',108,50,96,{dr:[1,3],legs:8}],
+['HEMNES 책장','case',90,37,197,{r:5,legs:6}],
+['HEMNES 협탁','case',46,35,70,{dr:[1,2],legs:10}],
+['HEMNES TV 장식장','case',148,47,57,{c:3,r:2,legs:8}],
+['PAX 옷장 2도어','case',100,60,236,{doors:2}],
+['PAX 옷장 3도어','case',150,60,236,{doors:3}],
+['BRIMNES 옷장 3도어','case',117,50,190,{doors:3}],
+['BRIMNES 4칸 서랍장','case',78,41,124,{dr:[1,4]}],
+['KLEPPSTAD 옷장 2도어','case',79,55,176,{doors:2}],
+['BESTÅ TV 장식장','case',180,42,38,{doors:3}],
+['BESTÅ 수납장','case',120,42,65,{doors:2}],
+['LACK TV 장식장','case',120,35,36,{r:2}],
+['IVAR 수납장','case',80,30,83,{doors:2}],
+['HAUGA 6칸 서랍장','case',138,46,84,{dr:[2,3]}],
+['KULLEN 5칸 서랍장','case',70,40,112,{dr:[1,5]}],
+['RAST 3칸 서랍장','case',62,30,70,{dr:[1,3]}],
+['ALEX 서랍유닛','case',36,58,70,{dr:[1,5]}],
+['HELMER 서랍유닛','case',28,43,69,{dr:[1,6]}],
+['TRONES 신발장','case',52,18,39,{doors:1}],
+['STÄLL 신발장 3칸','case',79,29,148,{dr:[1,3]}],
+['METOD 주방 하부장','case',60,60,88,{doors:1,legs:8}],
+['TROFAST 수납 프레임','case',99,44,94,{dr:[3,3]}],
+['VITTSJÖ 선반유닛','rack',100,36,175,{n:5}],
+['FJÄLLBO 선반유닛','rack',100,36,136,{n:4}],
+['HYLLIS 선반유닛','rack',60,27,140,{n:4}],
+['IVAR 선반유닛','rack',89,30,179,{n:5}],
+['OMAR 선반유닛','rack',92,36,181,{n:4}],
+['BROR 선반유닛','rack',85,40,190,{n:4}],
+['LERBERG 선반유닛','rack',60,35,148,{n:5}],
+['RÅSKOG 카트','rack',35,45,78,{n:3}],
+['LACK 사이드테이블','table',55,55,45,{}],
+['LACK 커피테이블','table',90,55,45,{shelf:1}],
+['LINNMON/ADILS 책상','table',100,60,74,{L:4}],
+['LAGKAPTEN/ADILS 책상','table',120,60,73,{L:4}],
+['MICKE 책상','table',105,50,75,{panel:1}],
+['MALM 책상','table',140,65,73,{panel:1}],
+['BEKANT 책상','table',160,80,75,{L:6}],
+['IDÅSEN 책상','table',160,80,75,{L:6}],
+['HEMNES 책상','table',155,65,74,{L:6}],
+['ALEX 책상','table',100,48,76,{L:4}],
+['INGO 식탁','table',120,75,73,{L:6}],
+['EKEDALEN 식탁','table',120,80,75,{L:6}],
+['MELLTORP 식탁','table',125,75,74,{L:4}],
+['LISABO 식탁','table',140,78,74,{}],
+['MÖRBYLÅNGA 식탁','table',140,85,74,{L:8}],
+['SKOGSTA 식탁','table',235,100,73,{L:8}],
+['LISABO 커피테이블','table',118,50,50,{L:4}],
+['HEMNES 커피테이블','table',118,75,46,{L:6,shelf:1}],
+['KNARREVIK 협탁','table',37,28,45,{L:2.5,shelf:1}],
+['LÄTT 어린이 테이블','table',63,48,45,{L:3.5}],
+['MARIUS 스툴','table',32,32,45,{L:2.5}],
+['ODDVAR 스툴','table',31,31,45,{L:3.5}],
+['FLISAT 어린이 스툴','table',24,24,28,{L:3}],
+['ADDE 의자','chair',39,47,77,{}],
+['STEFAN 의자','chair',42,49,90,{}],
+['INGOLF 의자','chair',43,52,91,{}],
+['IVAR 의자','chair',41,50,95,{}],
+['LISABO 의자','chair',45,47,78,{}],
+['EKEDALEN 의자','chair',45,51,95,{}],
+['INGOLF 바 스툴','chair',40,45,102,{sh:63}],
+['MAMMUT 어린이 의자','chair',39,36,67,{sh:30}],
+['KLIPPAN 2인용 소파','sofa',180,88,66,{n:2}],
+['EKTORP 3인용 소파','sofa',218,88,88,{}],
+['EKTORP 2인용 소파','sofa',179,88,88,{n:2}],
+['KIVIK 3인용 소파','sofa',228,95,83,{a:24}],
+['SÖDERHAMN 3인용 소파','sofa',198,99,83,{a:8}],
+['FRIHETEN 소파베드','sofa',225,105,83,{}],
+['VIMLE 3인용 소파','sofa',241,98,83,{}],
+['LANDSKRONA 3인용 소파','sofa',204,89,78,{a:14}],
+['GLOSTAD 2인용 소파','sofa',185,78,66,{n:2,a:12}],
+['LINANÄS 3인용 소파','sofa',198,80,76,{a:12}],
+['UPPLAND 3인용 소파','sofa',218,88,88,{}],
+['POÄNG 암체어','sofa',68,82,100,{n:1,a:6}],
+['STRANDMON 윙체어','sofa',82,96,101,{n:1,a:14}],
+['EKERÖ 암체어','sofa',70,73,75,{n:1,a:10}],
+['PELLO 암체어','sofa',67,85,96,{n:1,a:6}],
+['MALM 침대 (퀸)','bed',156,209,38,{hb:100}],
+['MALM 침대 (싱글)','bed',105,209,38,{hb:100}],
+['HEMNES 침대','bed',163,211,40,{hb:112,fb:66}],
+['BRIMNES 침대','bed',166,206,47,{hb:111}],
+['NEIDEN 침대','bed',97,205,30,{hb:65}],
+['TARVA 침대','bed',158,209,33,{hb:92}],
+['SLATTUM 침대','bed',154,206,30,{hb:100}],
+['SONGESAND 침대','bed',163,207,41,{hb:95}],
+['NORDLI 침대','bed',160,202,30,{hb:30}],
+['IDANÄS 침대','bed',168,217,40,{hb:121}],
+['SAGSTUA 침대','bed',160,208,35,{hb:140,fb:70}],
+['SNIGLAR 어린이 침대','bed',77,165,30,{hb:56,fb:45}],
+];
+const CAT={case:'수납장',rack:'선반·카트',table:'테이블·스툴',chair:'의자',sofa:'소파·암체어',bed:'침대'};
+let scale=12,stock=1.5;
+// 부품 생성기: P(이름, 폭, 높이, 깊이, x, y, z). 실물 cm, 최소 모서리 기준. t = 고른 판재가 실물에서 갖는 두께
+const G={
+case(P,W,D,H,t,{c=1,r=1,dr,doors,legs=0}){
+  const Dc=dr||doors?D-t:D,h=H-legs,ih=h-2*t,iw=W-2*t,cw=(iw-(c-1)*t)/c,ch=(ih-(r-1)*t)/r,g=.4;
+  if(legs){const L=Math.max(4,t);for(const x of[0,W-L])for(const z of[0,Dc-L])P('다리',L,legs,L,x,0,z)}
+  P('측판',t,h,Dc,0,legs,0);P('측판',t,h,Dc,W-t,legs,0);
+  P('상판',iw,t,Dc,t,H-t,0);P('하판',iw,t,Dc,t,legs,0);P('뒤판',iw,ih,t,t,legs+t,0);
+  for(let i=1;i<c;i++)P('칸막이',t,ih,Dc-t,i*(cw+t),legs+t,t);
+  for(let i=0;i<c;i++)for(let j=1;j<r;j++)P('선반',cw,t,Dc-t,t+i*(cw+t),legs+j*(ch+t),t);
+  if(dr)for(let i=0;i<dr[0];i++)for(let j=0;j<dr[1];j++)P('서랍 앞판',W/dr[0]-g,h/dr[1]-g,t,i*W/dr[0]+g/2,legs+j*h/dr[1]+g/2,Dc);
+  for(let i=0;i<doors;i++)P('문짝',W/doors-g,h-g,t,i*W/doors+g/2,legs+g/2,Dc);
+},
+rack(P,W,D,H,t,{n=4}){
+  const L=Math.max(2.5,t),y0=H*.06;
+  for(const x of[0,W-L])for(const z of[0,D-L])P('기둥',L,H,L,x,0,z);
+  for(let i=0;i<n;i++)P('선반',W-2*L,t,D,L,y0+i*(H-t-y0)/(n-1),0);
+},
+table(P,W,D,H,t,{L=5,shelf,panel}){
+  P('상판',W,t,D,0,H-t,0);
+  if(panel){P('측판',t,H-t,D,0,0,0);P('측판',t,H-t,D,W-t,0,0);P('뒤 가림판',W-2*t,H*.4,t,t,H*.6-t,0);return}
+  L=Math.max(L,t);
+  for(const x of[0,W-L])for(const z of[0,D-L])P('다리',L,H-t,L,x,0,z);
+  if(shelf)P('하단 선반',W-2*L,t,D,L,H*.25,0);
+},
+chair(P,W,D,H,t,{sh=45}){
+  const L=Math.max(3.5,t),bh=(H-sh)*.45;
+  for(const x of[0,W-L]){P('뒷다리 (등받이 기둥)',L,H,L,x,0,0);P('앞다리',L,sh-t,L,x,0,D-L)}
+  P('좌판',W,t,D-L,0,sh-t,L);P('등받이',W-2*L,bh,t,L,H-bh,(L-t)/2);
+},
+sofa(P,W,D,H,t,{n=3,a=18,sh=42}){
+  const b=20,iw=W-2*a;
+  P('등받이 블록',W,H,b,0,0,0);
+  for(const x of[0,W-a])P('팔걸이 블록',a,Math.min(H,sh+20),D-b,x,0,b);
+  P('좌대 블록',iw,sh-12,D-b,a,0,b);
+  for(let i=0;i<n;i++)P('방석',iw/n-.6,12,D-b-.6,a+i*iw/n+.3,sh-12,b);
+},
+bed(P,W,D,H,t,{hb=90,fb=H}){
+  const rh=Math.min(20,H),y=H-rh;
+  P('헤드보드',W,hb,t,0,0,0);P('풋보드',W,fb,t,0,0,D-t);
+  for(const x of[0,W-t])P('사이드 레일',t,rh,D-2*t,x,y,t);
+  P('갈빗살 바닥판',W-2*t,t,D-2*t,t,y+rh/2,t);
+  P('매트리스',W-2*t-1,18,D-2*t-1,t+.5,y+rh/2+t,t+.5);
+}};
+function build(it){const ps=[];G[it[1]]((n,w,h,d,x,y,z)=>ps.push({n,s:[w,h,d],p:[x,y,z]}),it[2],it[3],it[4],stock*scale/10,it[5]);return ps}
+const valid=ps=>ps.every(p=>p.s.every(v=>v>.01&&isFinite(v)));
+const mm=v=>Math.round(v*100/scale)/10, f=v=>+v.toFixed(2);
+const bbox=ps=>[0,1,2].map(i=>Math.max(...ps.map(p=>p.p[i]+p.s[i])));
+function cutlist(ps){const m=new Map();
+  for(const p of ps){const d=p.s.map(mm).sort((a,b)=>b-a),k=p.n+d,e=m.get(k)||{n:p.n,d,q:0};e.q++;m.set(k,e)}
+  return[...m.values()].map((e,i)=>({...e,id:i+1,kind:Math.abs(e.d[2]-stock)<.06?'판재':e.d[1]-e.d[2]<.06?'각재':'블록'}))}
+const PW=190,PH=262; // A4에서 여백 10mm와 확인선 자리를 뺀 영역
+function pack(cl){const rs=[],over=[];
+  for(const c of cl)if(c.kind=='판재'){const[a,b]=c.d,o=a<=PW&&b<=PH?{w:a,h:b}:a<=PH&&b<=PW?{w:b,h:a}:null;
+    if(!o)over.push(c.id);else for(let i=0;i<c.q;i++)rs.push({...o,id:c.id})}
+  rs.sort((x,y)=>y.h-x.h);const pages=[[]];let x=0,y=0,rh=0;
+  for(const r of rs){if(x+r.w>PW){x=0;y+=rh+3;rh=0}if(y+r.h>PH){pages.push([]);x=y=rh=0}
+    pages[pages.length-1].push({...r,x,y});x+=r.w+3;rh=Math.max(rh,r.h)}
+  return{pages:pages.filter(p=>p.length),over}}
+const svgHead=(w,h)=>`<svg xmlns="http://www.w3.org/2000/svg" width="${f(w)}mm" height="${f(h)}mm" viewBox="0 0 ${f(w)} ${f(h)}" font-family="sans-serif"><rect width="100%" height="100%" fill="#fff"/>`;
+function sheetSvg(pg,label){let s=svgHead(210,297)+'<g transform="translate(10,10)" fill="none" stroke="#000" stroke-width=".2">';
+  for(const r of pg)s+=`<rect x="${f(r.x)}" y="${f(r.y)}" width="${r.w}" height="${r.h}"/><text x="${f(r.x+r.w/2)}" y="${f(r.y+r.h/2)}" font-size="${f(Math.min(4,r.h*.7,r.w*.7))}" text-anchor="middle" dominant-baseline="central" fill="#000" stroke="none">${r.id}</text>`;
+  return s+`<path d="M0 272h50M0 270v4M50 270v4"/><text x="54" y="273" font-size="3" fill="#000" stroke="none">50 mm 확인선: 배율 100%로 인쇄한 뒤 자로 재 보세요 · ${label}</text></g></svg>`}
+function bpSvg(ps){const k=10/scale,[X,Y,Z]=bbox(ps).map(v=>v*k),fs=Math.max(3,(X+Z)/40),u=fs/3,m=fs*5,g=fs*7,x2=m+X+g,y2=m+Y+g;
+  const R=(x,y,w,h)=>`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}"/>`;
+  const tx=(x,y,t,a='')=>`<text x="${f(x)}" y="${f(y)}" ${a}>${t}</text>`;
+  const dh=(x1,xb,y,t)=>`<path d="M${f(x1)} ${f(y)}H${f(xb)}M${f(x1)} ${f(y-u)}v${f(2*u)}M${f(xb)} ${f(y-u)}v${f(2*u)}"/>`+tx((x1+xb)/2,y-u,t,'text-anchor="middle"');
+  let s=svgHead(Math.max(2*m+X+g+Z,150),m+y2+Z)+`<g fill="none" stroke="#000" stroke-width="${f(fs/14)}" font-size="${f(fs)}">`;
+  for(const{s:[w,h,d],p:[x,y,z]}of ps)s+=R(m+x*k,m+Y-(y+h)*k,w*k,h*k)+R(x2+Z-(z+d)*k,m+Y-(y+h)*k,d*k,h*k)+R(m+x*k,y2+z*k,w*k,d*k);
+  const xv=m-fs*1.5;
+  return s+`<g fill="#000" stroke-width="${f(fs/20)}">`+tx(m,m-fs*1.2,'정면도')+tx(x2,m-fs*1.2,'측면도')+tx(m,y2-fs*.8,'평면도')
+    +dh(m,m+X,m+Y+fs*1.6,f(X))+dh(x2,x2+Z,m+Y+fs*1.6,f(Z))
+    +`<path d="M${f(xv)} ${f(m)}V${f(m+Y)}M${f(xv-u)} ${f(m)}h${f(2*u)}M${f(xv-u)} ${f(m+Y)}h${f(2*u)}"/>`+tx(xv-u,m+Y/2,f(Y),`text-anchor="middle" transform="rotate(-90 ${f(xv-u)} ${f(m+Y/2)})"`)+'</g></g></svg>'}
+// STL: Z가 위쪽인 프린터 좌표 (x, -z, y), 단위 mm
+function stl(ps){const k=10/scale,Q=[[0,4,6,2],[1,3,7,5],[0,1,5,4],[2,6,7,3],[0,2,3,1],[4,5,7,6]];let o='solid miniature\n';
+  for(const{s:[w,h,d],p:[x,y,z]}of ps){const a=[x*k,-(z+d)*k,y*k],e=[w*k,d*k,h*k],v=i=>[0,1,2].map(j=>f(a[j]+(i>>j&1)*e[j])).join(' ');
+    for(const q of Q)for(const tr of[[q[0],q[1],q[2]],[q[0],q[2],q[3]]])o+='facet normal 0 0 0\nouter loop\n'+tr.map(i=>'vertex '+v(i)+'\n').join('')+'endloop\nendfacet\n'}
+  return o+'endsolid miniature\n'}
+//LOGIC-END
+
+const HOW={
+case:['뒤판을 바닥에 눕히고 하판과 측판 2장을 직각으로 세워 붙입니다.','칸막이와 선반을 아래에서부터 붙입니다. 같은 높이로 자른 받침 조각을 끼워 두면 수평이 맞습니다.','상판을 덮고 직각을 확인한 뒤, 풀이 마를 때까지 마스킹테이프로 고정합니다.','문짝과 서랍 앞판은 앞면에 붙이는 장식판입니다. 서로 조금씩 틈을 두면 실물처럼 보입니다.','다리가 있는 모델은 마지막에 바닥 네 귀퉁이에 붙입니다.'],
+rack:['기둥 4개에 선반 높이를 똑같이 표시합니다.','기둥 2개를 눕히고 선반을 모두 세워 붙여 사다리 모양을 만듭니다.','나머지 기둥 2개를 덮어 붙이고, 평평한 곳에 세워 흔들리지 않는지 확인합니다.'],
+table:['상판을 뒤집어 놓고 네 귀퉁이에 다리(또는 양쪽 측판)를 직각으로 붙입니다.','하단 선반이나 뒤 가림판이 있으면 다리 사이에 붙입니다.','바로 세워 네 다리가 모두 닿는지 보고, 긴 다리는 사포로 맞춥니다.'],
+chair:['뒷다리 2개 사이 위쪽에 등받이를 붙여 등판을 만듭니다.','좌판 아래 앞쪽에 앞다리 2개를 붙입니다.','좌판 뒤쪽 모서리를 뒷다리에 표시한 좌판 높이에 맞춰 붙입니다.'],
+sofa:['블록은 폼보드를 겹치거나 스펀지, 발사 블록을 잘라 만듭니다. 3D 프린터가 있으면 STL을 그대로 출력하면 됩니다.','좌대 블록 뒤에 등받이를, 양옆에 팔걸이를 붙입니다.','천으로 감싼 방석을 좌대 위에 올려 붙입니다.'],
+bed:['헤드보드와 풋보드 사이에 사이드 레일 2개를 붙여 틀을 만듭니다.','레일 중간 높이에 갈빗살 바닥판을 붙입니다.','스펀지나 폼보드를 천으로 감싼 매트리스를 올립니다.']};
+const $=s=>document.querySelector(s),norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+let cur=0,cat='',dls=null,kit=null,R,scene,cam,ctl,grp;
+const draw=()=>R&&R.render(scene,cam);
+
+function init3d(){const el=$('#v3');
+  try{R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(devicePixelRatio);el.append(R.domElement);
+    scene=new THREE.Scene();cam=new THREE.PerspectiveCamera(35,1,1,1e4);
+    scene.add(new THREE.HemisphereLight(0xffffff,0x8a7a66,.95));const d=new THREE.DirectionalLight(0xffffff,.55);d.position.set(2,4,3);scene.add(d);
+    ctl=new THREE.OrbitControls(cam,R.domElement);ctl.addEventListener('change',draw);
+    new ResizeObserver(()=>{R.setSize(el.clientWidth,el.clientHeight);cam.aspect=el.clientWidth/el.clientHeight;cam.updateProjectionMatrix();draw()}).observe(el);
+  }catch(e){R=null;el.textContent='이 화면에서는 3D 보기를 쓸 수 없습니다. 도면과 재단표는 그대로 쓸 수 있습니다.'}}
+function show3d(ps){if(!R)return;if(grp){scene.remove(grp);grp.traverse(o=>o.geometry&&o.geometry.dispose())}
+  grp=new THREE.Group();const k=10/scale,edge=new THREE.LineBasicMaterial({color:0x3b2f22});
+  ps.forEach(({n,s,p},i)=>{const g=new THREE.BoxGeometry(s[0]*k,s[1]*k,s[2]*k),
+    m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:/방석|매트리스|블록/.test(n)?0xa9b9cc:i%2?0xdcbd90:0xcfa878}));
+    m.position.set((p[0]+s[0]/2)*k,(p[1]+s[1]/2)*k,(p[2]+s[2]/2)*k);m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g),edge));grp.add(m)});
+  const[X,Y,Z]=bbox(ps).map(v=>v*k),r=Math.hypot(X,Y,Z);grp.position.set(-X/2,-Y/2,-Z/2);scene.add(grp);
+  cam.position.set(r*.9,r*.6,r*1.3);cam.near=r/100;cam.far=r*20;cam.updateProjectionMatrix();ctl.target.set(0,0,0);ctl.update();draw()}
+
+function list(){const q=norm($('#q').value.trim());
+  $('#list').innerHTML=T.map((t,i)=>(!cat||t[1]==cat)&&norm(t[0]).includes(q)?`<button data-i="${i}"${i==cur?' aria-current="true"':''}>${t[0]}<small>${CAT[t[1]]}</small></button>`:'').join('')||'<p class="hint">검색 결과가 없습니다.</p>'}
+function show(){const it=T[cur],ps=build(it);$('#nm').textContent=it[0];kit=null;
+  if(!valid(ps)){$('#dims').innerHTML='<span class="warn">이 축척에서는 고른 판재가 너무 두꺼워 부품을 만들 수 없습니다. 더 얇은 판재나 더 큰 축척을 고르세요.</span>';
+    for(const id of['bp','cut','sheets','how'])$('#'+id).innerHTML='';show3d([]);return}
+  const[X,Y,Z]=bbox(ps),cl=cutlist(ps),{pages,over}=pack(cl);
+  $('#dims').textContent=`실물 약 ${f(X)}×${f(Z)}×${f(Y)} cm (폭×깊이×높이) → 1:${scale} 모형 ${mm(X)}×${mm(Z)}×${mm(Y)} mm`;
+  const bp=bpSvg(ps),sheets=pages.map((p,i)=>sheetSvg(p,`${it[0]} 1:${scale} · 판재 ${stock} mm · ${i+1}/${pages.length}`));
+  $('#bp').innerHTML=bp;
+  $('#cut').innerHTML='<thead><tr><th>번호</th><th>부품</th><th>종류</th><th>길이 × 폭 × 두께 (mm)</th><th>수량</th></tr></thead><tbody>'+cl.map(c=>`<tr><td>${c.id}</td><td>${c.n}</td><td>${c.kind}</td><td>${c.d.join(' × ')}</td><td>${c.q}</td></tr>`).join('')+'</tbody>';
+  $('#sheets').innerHTML=sheets.map(s=>`<div class="paper">${s}</div>`).join('')+(over.length?`<p class="warn">${over.join(', ')}번 부품은 A4보다 커서 배치도에서 뺐습니다. 재단표 치수로 직접 재단하세요.</p>`:'')+(sheets.length?'':'<p class="hint">판재로 자르는 부품이 없습니다. 재단표의 블록 치수대로 만드세요.</p>');
+  $('#how').innerHTML=`<p>재료: 두께 ${stock} mm 판재(발사, MDF, 하드보드지), 재단표의 각재, 목공풀, 커터와 쇠자, 400방 사포. 배치도의 번호는 재단표 번호와 같습니다.</p><ol>${HOW[it[1]].map(s=>`<li>${s}</li>`).join('')}</ol>`;
+  show3d(ps);
+  kit={name:`${it[0]} 1-${scale}`.replace(/[^\w가-힣]+/g,'-'),files:{'model.stl':stl(ps),'3면도.svg':bp,'재단표.csv':'﻿번호,부품,종류,길이mm,폭mm,두께mm,수량\n'+cl.map(c=>[c.id,c.n,c.kind,...c.d,c.q].join(',')).join('\n')}};
+  sheets.forEach((s,i)=>kit.files[`재단배치도-${i+1}.svg`]=s)}
+
+$('#cats').innerHTML=[['','전체'],...Object.entries(CAT)].map(([k,v])=>`<button data-c="${k}" aria-pressed="${k==cat}">${v}</button>`).join('');
+$('#cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;for(const x of $('#cats').children)x.setAttribute('aria-pressed',x==b);list()};
+$('#list').onclick=e=>{const b=e.target.closest('button');if(!b)return;cur=+b.dataset.i;list();show()};
+$('#q').oninput=list;
+$('#sc').onchange=e=>{scale=+e.target.value;$('#st').value=stock={6:3,12:1.5,24:1,48:1}[scale];show()};
+$('#st').onchange=e=>{stock=+e.target.value;show()};
+$('#dl').onclick=async()=>{if(!kit)return;try{const z=new JSZip();for(const[n,d]of Object.entries(kit.files))z.file(n,d);
+    await dls.save({filename:kit.name+'.zip',data:await z.generateAsync({type:'blob'})});$('#msg').textContent='저장했습니다.'}
+  catch(e){$('#msg').textContent=e.code=='declined'?'저장을 취소했습니다.':'저장하지 못했습니다. 잠시 뒤 다시 눌러 주세요.'}};
+(window.claude?.use?window.claude.use('downloads'):Promise.resolve(null)).then(d=>{dls=d;$('#dl').hidden=!d;if(!d)$('#msg').textContent='이 화면에서는 파일 저장을 쓸 수 없습니다.'});
+init3d();list();show();
+</script>
