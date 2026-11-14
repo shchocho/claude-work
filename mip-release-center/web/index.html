@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0c6a4e">
+  <title>문서 해지 센터</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles/tokens.css">
+  <link rel="stylesheet" href="/styles/app.css">
+  <script src="/js/theme-boot.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+  <div id="app"></div>
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+  <div id="overlay-root"></div>
+  <noscript>
+    <p class="noscript">문서 해지 센터를 사용하려면 브라우저에서 자바스크립트를 켜 주세요.</p>
+  </noscript>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

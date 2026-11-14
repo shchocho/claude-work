@@ -1,0 +1,107 @@
+/*
+ * 디자인 토큰.
+ * 색은 To-Be 프로세스 그림의 구역 색을 그대로 의미로 쓴다.
+ *   control(녹색)  = 시스템 통제 구간, 주요 동작
+ *   channel(황색)  = 송부 수단
+ *   audit(적색)    = 감사에서 주의가 필요한 것
+ */
+
+:root {
+  color-scheme: light;
+
+  --bg: #f3f5f1;
+  --surface: #ffffff;
+  --surface-2: #f8faf7;
+  --surface-3: #eef1ec;
+  --ink: #141d19;
+  --ink-2: #44514b;
+  --ink-3: #5f6c66;
+  --line: #dfe4de;
+  --line-strong: #c3cbc4;
+  /* 입력 칸처럼 테두리로만 구분되는 조작 요소용. 배경과 3:1 이상. */
+  --field-line: #7b8781;
+
+  --control: #0c6a4e;
+  --control-hover: #095740;
+  --control-ink: #0a4f3b;
+  --control-bg: #e2f1ea;
+  --control-line: #a9d5c2;
+  --on-control: #ffffff;
+
+  --channel-ink: #6f4a00;
+  --channel-bg: #fff3c9;
+  --channel-line: #e6c65c;
+  --channel-mark: #9c6b00;
+
+  --audit: #b3261e;
+  --audit-ink: #8f1d17;
+  --audit-bg: #fcebe8;
+  --audit-line: #efb4ae;
+
+  --label-general: #6b7770;
+  --label-confidential: #b85c00;
+  --label-highly: #b3261e;
+
+  --chart-mark: #0c6a4e;
+  --chart-track: #dcebe4;
+  --chart-grid: #e6eae5;
+
+  --focus: #0b57d0;
+  --shadow-1: 0 1px 2px rgb(20 29 25 / 0.06), 0 1px 1px rgb(20 29 25 / 0.04);
+  --shadow-2: 0 12px 32px rgb(20 29 25 / 0.14), 0 2px 6px rgb(20 29 25 / 0.08);
+  --scrim: rgb(14 21 18 / 0.45);
+
+  --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI",
+    "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Noto Sans CJK KR", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --side-w: 256px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0e1412;
+  --surface: #151d1a;
+  --surface-2: #19231f;
+  --surface-3: #1f2a26;
+  --ink: #e9eeea;
+  --ink-2: #b4c0b9;
+  --ink-3: #93a099;
+  --line: #27332e;
+  --line-strong: #3a4842;
+  --field-line: #6f7e77;
+
+  --control: #57c79d;
+  --control-hover: #74d6b0;
+  --control-ink: #8ee0bf;
+  --control-bg: #12362a;
+  --control-line: #1f5b47;
+  --on-control: #05241a;
+
+  --channel-ink: #f3cf63;
+  --channel-bg: #352b09;
+  --channel-line: #6b5712;
+  --channel-mark: #e0ad1f;
+
+  --audit: #ff8a7e;
+  --audit-ink: #ffa79d;
+  --audit-bg: #3b1613;
+  --audit-line: #6e2a24;
+
+  --label-general: #9aa69f;
+  --label-confidential: #f0a04b;
+  --label-highly: #ff8a7e;
+
+  --chart-mark: #57c79d;
+  --chart-track: #1d3a30;
+  --chart-grid: #232e2a;
+
+  --focus: #8ab4f8;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 16px 40px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.4);
+  --scrim: rgb(0 0 0 / 0.6);
+}

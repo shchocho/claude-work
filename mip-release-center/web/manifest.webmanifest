@@ -1,0 +1,11 @@
+{
+  "name": "문서 해지 센터",
+  "short_name": "해지 센터",
+  "description": "MIP 보호 문서의 자가 승인 해제와 사외 송부 감사",
+  "lang": "ko",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f5f1",
+  "theme_color": "#0c6a4e",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "mip-release-center",
+  "version": "1.0.0",
+  "description": "문서 해지 센터 — MIP 보호 문서의 자가 승인 해제와 사외 송부 감사",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "demo": "node --disable-warning=ExperimentalWarning server/index.js --seed-demo",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  }
+}
